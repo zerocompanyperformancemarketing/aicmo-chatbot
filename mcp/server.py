@@ -1,4 +1,4 @@
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 from utils.scrape_utils import scrape_website, web_search
 from utils.slack_utils import send_to_slack_channel
 from utils.typesense_client import get_typesense_client, ensure_collections
@@ -148,12 +148,11 @@ def send_slack_message_tool(header: str, message: str) -> str:
     return f"Status: {response.status_code}"
 
 
-if __name__ == "__main__":
-    # Ensure Typesense collections exist on startup
-    try:
-        client = get_typesense_client()
-        ensure_collections(client)
-    except Exception as e:
-        print(f"Warning: Could not initialize Typesense collections: {e}")
+# Ensure Typesense collections exist on startup
+try:
+    client = get_typesense_client()
+    ensure_collections(client)
+except Exception as e:
+    print(f"Warning: Could not initialize Typesense collections: {e}")
 
-    mcp.run(transport="sse")
+app = mcp.http_app()

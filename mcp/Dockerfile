@@ -5,10 +5,10 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 WORKDIR /app
 
 COPY pyproject.toml .
-RUN uv sync --no-dev
+RUN uv pip install --system --no-cache .
 
 COPY . .
 
 EXPOSE 8001
 
-CMD ["uv", "run", "python", "server.py"]
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8001"]
