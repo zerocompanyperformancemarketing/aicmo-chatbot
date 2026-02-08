@@ -17,7 +17,7 @@ Multi-agent RAG chatbot that turns a podcast transcript library into a searchabl
                       │    │    │    │
                       └────┴────┴────┘
                                 │
-                          MCP client (SSE)
+                          MCP client (HTTP)
                                 │
                          ┌──────▼───────┐
                          │  FastMCP     │
@@ -40,7 +40,7 @@ Multi-agent RAG chatbot that turns a podcast transcript library into a searchabl
 | -------- | ------------------------------------------------------- |
 | API      | FastAPI, Python 3.12, Uvicorn                           |
 | Agents   | LangGraph + LangGraph Supervisor, LangChain OpenAI      |
-| Tools    | FastMCP (SSE transport), 9 Typesense-backed tools        |
+| Tools    | FastMCP (HTTP transport), 9 Typesense-backed tools       |
 | Search   | Typesense 30.1 (auto-embedding, hybrid keyword + vector) |
 | Database | MySQL 8.0, SQLAlchemy 2.0 async, aiomysql                |
 | LLM      | OpenRouter API (OpenAI-compatible)                       |

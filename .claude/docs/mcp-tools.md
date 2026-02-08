@@ -3,7 +3,7 @@
 ## Overview
 
 The FastMCP server (`mcp/server.py`) exposes 9 tools that agents use to query data and
-interact with external services. All tools are accessible via SSE transport at `MCP_URL`.
+interact with external services. All tools are accessible via HTTP transport at `MCP_URL`.
 
 ## Tool Inventory
 

@@ -36,14 +36,14 @@ All core files have been scaffolded and implemented. The project is ready for Do
   - `agents/supervisor.py` — LangGraph supervisor (query router)
 - **Agent utilities**:
   - `agents/utils/llm.py` — ChatOpenAI factory for OpenRouter
-  - `agents/utils/mcp_client.py` — FastMCP SSE client + LangChain tool adapter
+  - `agents/utils/mcp_client.py` — FastMCP HTTP client + LangChain tool adapter
   - `agents/utils/prompts.py` — System prompts for all agents
   - `agents/state/agent_state.py` — Shared LangGraph state schema
 - **Models**: `models/schemas.py` — Pydantic models for API requests/responses and data
 - **Utils**: `utils/slack_utils.py` — Slack webhook messaging
 
 ### MCP Service (`mcp/`)
-- **FastMCP server** (`server.py`): SSE transport, auto-creates Typesense collections on startup
+- **FastMCP server** (`server.py`): HTTP transport, auto-creates Typesense collections on startup
 - **Tools** (all with Args docstrings):
   - `search_transcripts_tool` — Hybrid search on transcript chunks
   - `filter_by_industry_tool` — Faceted episode search by industry
@@ -318,7 +318,7 @@ VTT file
 ### 3.1 Server Setup (`mcp/server.py`)
 
 - FastMCP server running on port 8001
-- SSE transport (`mcp.run(transport="sse")`)
+- HTTP transport (`app = mcp.http_app()`)
 - Connects to Typesense via Python client
 
 ### 3.2 MCP Tools
@@ -365,7 +365,7 @@ VTT file
 
 ### 4.2 MCP → LangGraph Tool Integration
 
-- Use `fastmcp.Client` to connect to the FastMCP server via SSE
+- Use `fastmcp.Client` to connect to the FastMCP server via HTTP
 - Convert MCP tools into LangChain-compatible tools that agents can call
 - All agents share the same FastMCP client connection
 
@@ -497,7 +497,7 @@ This is the build sequence — each step is testable before moving to the next.
 ### Step 7: MCP tools ✅
 - Implemented all 9 MCP tools (search, filter, metadata, web, slack)
 - All tools have proper Args docstrings
-- SSE transport configured
+- HTTP transport configured
 
 ### Step 8: LangGraph agents ✅
 - Implemented 4 agents (search, quote, summary, recommendation)
@@ -529,7 +529,7 @@ This is the build sequence — each step is testable before moving to the next.
 |----------|--------|-----------|
 | Embedding model | OpenAI `text-embedding-3-large` via Typesense | Higher quality embeddings; Typesense handles embedding calls on insert/search |
 | LLM provider | OpenRouter (`openai/gpt-5.2`) | Already configured; single API for all LLM calls |
-| MCP transport | SSE | HTTP-based, works across Docker containers |
+| MCP transport | HTTP | HTTP-based, works across Docker containers |
 | Chunk size | 500 words / 50-word overlap | Balance between context and retrieval precision |
 | Speaker detection | LLM agent with manual override | Handles no-label VTTs while allowing manual correction |
 | Search strategy | Hybrid (semantic + keyword) | Typesense supports both; covers exact matches and semantic similarity |
