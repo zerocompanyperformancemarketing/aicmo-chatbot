@@ -43,9 +43,9 @@ sample_transcript/ Sample VTT file for testing ingestion
 ### Docker Compose (primary workflow)
 
 ```bash
-docker-compose up -d          # Start all 4 services
+docker-compose up -d          # Start all 5 services
 docker-compose down            # Stop all services
-docker-compose logs -f api     # Tail API logs (also: mcp, ts_db, mysql)
+docker-compose logs -f api     # Tail API logs (also: mcp, ts_db, mysql, frontend)
 ```
 
 ### Tests
@@ -75,6 +75,11 @@ curl -X POST http://localhost:8000/ingest/directory \
 
 ### Chat
 
+**Web Interface (recommended):**
+- Open browser to http://localhost:3000/chat
+- Type your question and click Send
+
+**API (curl):**
 ```bash
 curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
@@ -84,7 +89,7 @@ curl -X POST http://localhost:8000/chat \
 ## Environment
 
 Two env files: `.env` (local dev, localhost hosts) and `.env.docker` (container hostnames).
-Key variables: `OPENROUTER_API_KEY`, `TS_API_KEY`, `DB_*`, `MCP_URL`, `SCRAPINGBEE_API_KEY`.
+Key variables: `OPENROUTER_API_KEY`, `TS_API_KEY`, `DB_*`, `MCP_URL`, `NEXT_PUBLIC_API_URL`, `SCRAPINGBEE_API_KEY`.
 
 ## Entry Points
 

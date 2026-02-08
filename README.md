@@ -65,7 +65,7 @@ mcp/
 frontend/               Next.js 15 chat UI (public + internal modes)
 tests/                  86-test pytest suite (all external services mocked)
 sample_transcript/      Sample VTT file for testing ingestion
-docker-compose.yml      All 4 services
+docker-compose.yml      All 5 services (Typesense, MySQL, MCP, API, Frontend)
 ```
 
 ## Prerequisites
@@ -104,7 +104,7 @@ docker-compose.yml      All 4 services
    docker-compose up -d
    ```
 
-   This starts four containers: `ts_db` (Typesense), `mysql`, `mcp` (FastMCP), and `api` (FastAPI).
+   This starts five containers: `ts_db` (Typesense), `mysql`, `mcp` (FastMCP), `api` (FastAPI), and `frontend` (Next.js).
 
 4. **Verify services are running**
 
@@ -112,6 +112,8 @@ docker-compose.yml      All 4 services
    curl http://localhost:8000/health
    # {"status": "ok"}
    ```
+
+   **Access the chat interface:** Open your browser to [http://localhost:3000/chat](http://localhost:3000/chat)
 
 5. **Ingest a sample transcript**
 
@@ -140,6 +142,7 @@ docker-compose.yml      All 4 services
 | `OPENROUTER_MODEL`    | Model identifier (e.g. `openai/gpt-5.2`)        | Yes      |
 | `SCRAPINGBEE_API_KEY` | ScrapingBee API key for web search/scrape tools  | No       |
 | `SLACK_WEBHOOK_URL`   | Slack incoming webhook URL for notifications     | No       |
+| `NEXT_PUBLIC_API_URL` | Frontend API URL (browser-accessible)            | Yes      |
 
 ## Running Tests
 
