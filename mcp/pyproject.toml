@@ -1,0 +1,12 @@
+[project]
+name = "aicmo-mcp"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "fastmcp",
+    "typesense",
+    "scrapingbee",
+    "requests",
+    "python-dotenv",
+    "pydantic-settings",
+]

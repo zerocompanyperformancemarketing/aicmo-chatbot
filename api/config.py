@@ -1,0 +1,43 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+class Config:
+    # MySQL
+    DB_HOST: str = os.getenv("DB_HOST", "localhost")
+    DB_PORT: str = os.getenv("DB_PORT", "3306")
+    DB_USER: str = os.getenv("DB_USER", "root")
+    DB_PASSWORD: str = os.getenv("DB_PASSWORD", "")
+    DB_NAME: str = os.getenv("DB_NAME", "aicmo_chatbot")
+
+    # Typesense
+    TS_PORT: str = os.getenv("TS_PORT", "8108")
+    TS_DATA_DIR: str = os.getenv("TS_DATA_DIR", "./db/typesense-data")
+    TS_API_KEY: str = os.getenv("TS_API_KEY", "")
+    TS_HOST: str = os.getenv("TS_HOST", "localhost")
+
+    # OpenRouter
+    OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
+    OPENROUTER_BASE_URL: str = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+    OPENROUTER_MODEL: str = os.getenv("OPENROUTER_MODEL", "openai/gpt-5.2")
+
+    # Urlbox
+    URLBOX_API_KEY: str = os.getenv("URLBOX_API_KEY", "")
+    URLBOX_API_SECRET: str = os.getenv("URLBOX_API_SECRET", "")
+
+    # OpenAI
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+    OPENAI_ORG_KEY: str = os.getenv("OPENAI_ORG_KEY", "")
+
+    # Stability AI
+    STABILITYAI_API_KEY: str = os.getenv("STABILITYAI_API_KEY", "")
+
+    # Anthropic
+    ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
+
+    # ScrapingBee
+    SCRAPINGBEE_API_KEY: str = os.getenv("SCRAPINGBEE_API_KEY", "")
+
+    # Slack
+    SLACK_WEBHOOK_URL: str = os.getenv("SLACK_WEBHOOK_URL", "")

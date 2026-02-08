@@ -9,3 +9,48 @@ services:
     volumes:
       - ${TS_DATA_DIR}:/data
     command: ["--data-dir", "/data", "--api-key=${TS_API_KEY}", "--enable-cors"]
+
+  mysql:
+    container_name: mysql
+    image: mysql:8.0
+    env_file:
+      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:3306"
+    volumes:
+      - ./db/mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mcp:
+    container_name: mcp
+    build: ./mcp
+    env_file:
+      - .env
+    ports:
+      - "8001:8001"
+    depends_on:
+      - ts_db
+
+  api:
+    container_name: api
+    build: ./api
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./sample_transcript:/app/sample_transcript
+    depends_on:
+      ts_db:
+        condition: service_started
+      mcp:
+        condition: service_started
+      mysql:
+        condition: service_healthy

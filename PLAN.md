@@ -9,13 +9,61 @@ No frontend, no authentication for now. Focus on core chatbot and ingestion func
 
 ## Current State
 
-- **Typesense 30.1** service defined in `docker-compose.yml`
-- **Empty directories**: `api/`, `api/agents/`, `mcp/`, `db/`
+All core files have been scaffolded and implemented. The project is ready for Docker build and integration testing.
+
+### Completed
+
+- **Docker Compose**: `ts_db`, `mcp`, `api` services defined with dependencies
+- **Dockerfiles**: `api/Dockerfile` and `mcp/Dockerfile` using `uv` (Astral) for deps
+- **pyproject.toml**: Both `api/` and `mcp/` with all required dependencies
+- **Config**: `api/config.py` and `mcp/config.py` — all env vars from `.env`
+- **.env**: Typesense, OpenRouter, Urlbox, OpenAI, StabilityAI, Anthropic, ScrapingBee, Slack keys
+
+### API Service (`api/`)
+- **FastAPI app** (`main.py`): `/health`, chat and ingest routers
+- **Routers**: `routers/chat.py` (POST /chat), `routers/ingest.py` (POST /ingest, POST /ingest/directory)
+- **Ingestion pipeline**:
+  - `ingestion/vtt_parser.py` — Parse VTT, merge short cues into sentences
+  - `ingestion/chunker.py` — 500-word chunks with 50-word overlap
+  - `ingestion/speaker_detector.py` — LLM-based speaker attribution (batch processing)
+  - `ingestion/metadata_extractor.py` — Filename parsing + LLM metadata extraction
+  - `ingestion/pipeline.py` — Orchestrates full flow → Typesense upsert
+- **LangGraph agents**:
+  - `agents/search_agent.py` — Transcript search by topic/keyword
+  - `agents/quote_agent.py` — Quote extraction with speaker attribution
+  - `agents/summary_agent.py` — Topic-based summaries across episodes
+  - `agents/recommendation_agent.py` — Episode/speaker recommendations
+  - `agents/supervisor.py` — LangGraph supervisor (query router)
+- **Agent utilities**:
+  - `agents/utils/llm.py` — ChatOpenAI factory for OpenRouter
+  - `agents/utils/mcp_client.py` — FastMCP SSE client + LangChain tool adapter
+  - `agents/utils/prompts.py` — System prompts for all agents
+  - `agents/state/agent_state.py` — Shared LangGraph state schema
+- **Models**: `models/schemas.py` — Pydantic models for API requests/responses and data
+- **Utils**: `utils/slack_utils.py` — Slack webhook messaging
+
+### MCP Service (`mcp/`)
+- **FastMCP server** (`server.py`): SSE transport, auto-creates Typesense collections on startup
+- **Tools** (all with Args docstrings):
+  - `search_transcripts_tool` — Hybrid search on transcript chunks
+  - `filter_by_industry_tool` — Faceted episode search by industry
+  - `filter_by_speaker_tool` — Speaker-based chunk search
+  - `get_episode_metadata_tool` — Episode metadata retrieval
+  - `list_speakers_tool` — Aggregate speakers with counts
+  - `list_industries_tool` — Aggregate industries with counts
+  - `web_search_tool` — Google search via ScrapingBee
+  - `scrape_website_tool` — Website scraping via ScrapingBee
+  - `send_slack_message_tool` — Slack webhook messaging
+- **Utils**:
+  - `utils/typesense_client.py` — Client factory + collection schema creation
+  - `utils/scrape_utils.py` — ScrapingBee web search and scraping
+  - `utils/slack_utils.py` — Slack webhook messaging
+
+### Infrastructure
 - **One sample transcript**: VTT format, ~37 min episode, no speaker labels
   - Podcast: "The Bliss Business Podcast"
   - Hosts: Steven Sikash, Mike Liske
   - Guest: Julie Harrell (President, Cooper Scoopers)
-- **.env**: Typesense config + OpenRouter API key (model: `openai/gpt-5.2`)
 
 ### Key Observations About the VTT Format
 
@@ -418,56 +466,55 @@ GET /industries          — List all industries
 
 This is the build sequence — each step is testable before moving to the next.
 
-### Step 1: Project scaffolding
-- Create all files/directories
-- Write Dockerfiles for `api` and `mcp`
-- Update `docker-compose.yml` with all services
-- Write `config.py` and Pydantic settings
-- Verify all containers start
+### Step 1: Project scaffolding ✅
+- Created all files/directories
+- Wrote Dockerfiles for `api` and `mcp` (using `uv`)
+- Updated `docker-compose.yml` with all 3 services
+- Wrote `config.py` for both services
+- Created `pyproject.toml` for both services
 
-### Step 2: Typesense collections
-- Write collection creation script
-- Create `episodes` and `transcript_chunks` collections
-- Verify via Typesense API
+### Step 2: Typesense collections ✅
+- Collection schemas defined in `mcp/utils/typesense_client.py`
+- Auto-creation on MCP server startup via `ensure_collections()`
+- `episodes` and `transcript_chunks` collections with auto-embedding
 
-### Step 3: VTT parser + chunker
-- Implement `vtt_parser.py` — parse and merge cues
-- Implement `chunker.py` — 500-word chunks with overlap
-- Test with sample transcript (no speaker labels yet)
+### Step 3: VTT parser + chunker ✅
+- Implemented `vtt_parser.py` — parse and merge cues (sentence boundary + gap detection)
+- Implemented `chunker.py` — 500-word chunks with 50-word overlap
 
-### Step 4: Metadata extraction
-- Implement `metadata_extractor.py` — filename parsing + LLM extraction
-- Test with sample transcript → verify extracted metadata
+### Step 4: Metadata extraction ✅
+- Implemented `metadata_extractor.py` — filename parsing + LLM extraction
+- Extracts title, guest, industry, tags, summary, hosts
 
-### Step 5: Speaker detection
-- Implement `speaker_detector.py` — LLM-based speaker identification
-- Test with sample transcript → verify speaker labels
+### Step 5: Speaker detection ✅
+- Implemented `speaker_detector.py` — LLM-based speaker identification
+- Batch processing with confidence scores
 
-### Step 6: Full ingestion pipeline
-- Implement `pipeline.py` — wire together parser → speaker → metadata → chunker → Typesense
-- Ingest sample transcript end-to-end
-- Verify data in Typesense (search, facets)
+### Step 6: Full ingestion pipeline ✅
+- Implemented `pipeline.py` — full flow: parse → metadata → speakers → chunk → Typesense upsert
+- Supports single file and directory ingestion
 
-### Step 7: MCP tools
-- Implement FastMCP server with all tools
-- Test each tool independently against Typesense data
-- Verify SSE transport works
+### Step 7: MCP tools ✅
+- Implemented all 9 MCP tools (search, filter, metadata, web, slack)
+- All tools have proper Args docstrings
+- SSE transport configured
 
-### Step 8: LangGraph agents
-- Implement each agent with MCP tool access
-- Test agents individually with sample queries
-- Implement supervisor with routing logic
-- Test multi-agent flows
+### Step 8: LangGraph agents ✅
+- Implemented 4 agents (search, quote, summary, recommendation)
+- Implemented supervisor with routing logic
+- MCP client adapter for LangChain tool integration
 
-### Step 9: FastAPI endpoints
-- Wire up `/chat` endpoint to supervisor
-- Wire up `/ingest` endpoint to pipeline
-- Add utility endpoints
-- Test full request flow
+### Step 9: FastAPI endpoints ✅
+- POST `/chat` — routes to LangGraph supervisor
+- POST `/ingest` — single file ingestion
+- POST `/ingest/directory` — batch directory ingestion
+- GET `/health` — health check
 
-### Step 10: Integration testing
-- End-to-end: ingest transcript → chat about it
-- Test all use cases from requirements:
+### Step 10: Integration testing 🔲
+- [ ] Build and start all Docker containers
+- [ ] Ingest sample transcript end-to-end
+- [ ] Verify data in Typesense
+- [ ] Test chatbot with sample queries:
   - Topic search
   - Speaker queries
   - Quote extraction

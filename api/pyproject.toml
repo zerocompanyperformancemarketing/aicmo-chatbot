@@ -1,0 +1,18 @@
+[project]
+name = "aicmo-api"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "langchain-openai",
+    "langgraph",
+    "langgraph-supervisor",
+    "fastmcp",
+    "typesense",
+    "webvtt-py",
+    "python-dotenv",
+    "pydantic-settings",
+    "sqlalchemy[asyncio]",
+    "aiomysql",
+]
