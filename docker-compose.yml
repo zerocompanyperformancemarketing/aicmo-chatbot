@@ -1,0 +1,11 @@
+services:
+  ts_db:
+    container_name: ts_db
+    image: typesense/typesense:30.1
+    env_file:
+      - .env.docker
+    ports:
+      - "${TS_PORT}:${TS_PORT}"
+    volumes:
+      - ${TS_DATA_DIR}:/data
+    command: ["--data-dir", "/data", "--api-key=${TS_API_KEY}", "--enable-cors"]
