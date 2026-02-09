@@ -1,4 +1,5 @@
 import logging
+import warnings
 from config import Config
 from fastmcp import FastMCP
 from logging_utils import truncate
@@ -14,6 +15,10 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+# Suppress Typesense client deprecation warnings (v30+ API renames)
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="typesense")
+logging.getLogger("typesense").setLevel(logging.ERROR)
 
 mcp = FastMCP("aicmo-tools")
 
