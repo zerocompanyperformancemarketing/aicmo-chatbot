@@ -1,5 +1,8 @@
+import logging
 import webvtt
 from models.schemas import ParsedCue
+
+logger = logging.getLogger(__name__)
 
 
 def _time_to_seconds(time_str: str) -> float:
@@ -18,6 +21,7 @@ def parse_vtt(file_path: str) -> list[ParsedCue]:
     Strategy: concatenate consecutive cues until we hit sentence-ending
     punctuation or a >2s gap between cues.
     """
+    logger.info(f"parse_vtt called | file_path={file_path!r}")
     captions = list(webvtt.read(file_path))
     if not captions:
         return []
@@ -64,4 +68,5 @@ def parse_vtt(file_path: str) -> list[ParsedCue]:
             text=current_text.strip(),
         ))
 
+    logger.info(f"parse_vtt returned | {len(merged)} segments")
     return merged

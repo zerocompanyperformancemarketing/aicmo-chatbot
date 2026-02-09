@@ -1,4 +1,8 @@
+import logging
+from logging_utils import truncate
 from utils.typesense_client import get_typesense_client
+
+logger = logging.getLogger(__name__)
 
 
 def filter_by_industry(industry: str, limit: int = 10) -> list[dict]:
@@ -7,6 +11,7 @@ def filter_by_industry(industry: str, limit: int = 10) -> list[dict]:
 
     Returns matching episodes with metadata.
     """
+    logger.info(f"filter_by_industry called | industry={industry!r}, limit={limit}")
     client = get_typesense_client()
 
     results = client.collections["episodes"].documents.search({
@@ -16,7 +21,7 @@ def filter_by_industry(industry: str, limit: int = 10) -> list[dict]:
         "include_fields": "id,title,guest_names,host_names,industry,topic_tags,summary,episode_link",
     })
 
-    return [
+    result = [
         {
             "id": hit["document"]["id"],
             "title": hit["document"].get("title", ""),
@@ -28,6 +33,8 @@ def filter_by_industry(industry: str, limit: int = 10) -> list[dict]:
         }
         for hit in results.get("hits", [])
     ]
+    logger.info(f"filter_by_industry returned | {len(result)} results | {truncate(result)}")
+    return result
 
 
 def filter_by_speaker(speaker_name: str, limit: int = 10) -> list[dict]:
@@ -36,6 +43,7 @@ def filter_by_speaker(speaker_name: str, limit: int = 10) -> list[dict]:
 
     Returns chunks spoken by that person with episode context.
     """
+    logger.info(f"filter_by_speaker called | speaker_name={speaker_name!r}, limit={limit}")
     client = get_typesense_client()
 
     results = client.collections["transcript_chunks"].documents.search({
@@ -45,7 +53,7 @@ def filter_by_speaker(speaker_name: str, limit: int = 10) -> list[dict]:
         "include_fields": "text,speaker,episode_id,start_time,end_time,chunk_index",
     })
 
-    return [
+    result = [
         {
             "text": hit["document"]["text"],
             "speaker": hit["document"].get("speaker", ""),
@@ -55,3 +63,5 @@ def filter_by_speaker(speaker_name: str, limit: int = 10) -> list[dict]:
         }
         for hit in results.get("hits", [])
     ]
+    logger.info(f"filter_by_speaker returned | {len(result)} results | {truncate(result)}")
+    return result

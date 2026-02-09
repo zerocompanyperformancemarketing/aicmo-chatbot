@@ -40,6 +40,7 @@ async def detect_speakers(
 
     Processes in batches to manage token costs.
     """
+    logger.info(f"detect_speakers called | segments={len(segments)}, guest_name={guest_name!r}")
     llm = get_llm(temperature=0.0)
     labeled_segments: list[ParsedCue] = []
 
@@ -84,4 +85,5 @@ async def detect_speakers(
                 speaker=speaker,
             ))
 
+    logger.info(f"detect_speakers returned | {len(labeled_segments)} labeled segments")
     return labeled_segments

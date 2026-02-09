@@ -29,6 +29,7 @@ async def ingest_file(file_path: str) -> dict:
 
     Flow: parse VTT → detect speakers → extract metadata → chunk → upsert to Typesense
     """
+    logger.info(f"ingest_file called | file_path={file_path!r}")
     filename = os.path.basename(file_path)
     logger.info(f"Starting ingestion for: {filename}")
 
@@ -74,15 +75,18 @@ async def ingest_file(file_path: str) -> dict:
 
     logger.info(f"Upserted {len(chunks)} chunks for {episode_id}")
 
-    return {
+    result = {
         "status": "success",
         "episode_id": episode_id,
         "chunks_created": len(chunks),
     }
+    logger.info(f"ingest_file returned | {result}")
+    return result
 
 
 async def ingest_directory(directory_path: str) -> dict:
     """Ingest all VTT files in a directory."""
+    logger.info(f"ingest_directory called | directory_path={directory_path!r}")
     vtt_files = [
         os.path.join(directory_path, f)
         for f in os.listdir(directory_path)
@@ -94,7 +98,9 @@ async def ingest_directory(directory_path: str) -> dict:
         result = await ingest_file(file_path)
         results.append(result)
 
-    return {
+    result = {
         "status": "success",
         "episodes_processed": len(results),
     }
+    logger.info(f"ingest_directory returned | {result}")
+    return result

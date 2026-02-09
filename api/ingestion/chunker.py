@@ -1,4 +1,7 @@
+import logging
 from models.schemas import ParsedCue, TranscriptChunk
+
+logger = logging.getLogger(__name__)
 
 
 def chunk_segments(
@@ -14,6 +17,7 @@ def chunk_segments(
     Prefers breaking at speaker turns and sentence boundaries.
     Each chunk gets denormalized episode metadata.
     """
+    logger.info(f"chunk_segments called | episode_id={episode_id!r}, segments={len(segments)}, chunk_size={chunk_size}, overlap={overlap}")
     chunks: list[TranscriptChunk] = []
     current_words: list[str] = []
     current_start: float = 0.0
@@ -67,4 +71,5 @@ def chunk_segments(
             topic_tags=metadata.get("topic_tags", []),
         ))
 
+    logger.info(f"chunk_segments returned | {len(chunks)} chunks")
     return chunks

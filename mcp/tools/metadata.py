@@ -1,4 +1,8 @@
+import logging
+from logging_utils import truncate
 from utils.typesense_client import get_typesense_client
+
+logger = logging.getLogger(__name__)
 
 
 def get_episode_metadata(episode_id: str) -> dict:
@@ -7,11 +11,12 @@ def get_episode_metadata(episode_id: str) -> dict:
 
     Returns title, guest, industry, tags, summary, link.
     """
+    logger.info(f"get_episode_metadata called | episode_id={episode_id!r}")
     client = get_typesense_client()
 
     try:
         doc = client.collections["episodes"].documents[episode_id].retrieve()
-        return {
+        result = {
             "id": doc.get("id", ""),
             "title": doc.get("title", ""),
             "guest_names": doc.get("guest_names", []),
@@ -22,7 +27,10 @@ def get_episode_metadata(episode_id: str) -> dict:
             "episode_link": doc.get("episode_link", ""),
             "duration_seconds": doc.get("duration_seconds", 0),
         }
+        logger.info(f"get_episode_metadata returned | {truncate(result)}")
+        return result
     except Exception:
+        logger.info(f"get_episode_metadata returned | episode not found")
         return {"error": f"Episode '{episode_id}' not found"}
 
 
@@ -32,6 +40,7 @@ def list_speakers() -> list[dict]:
 
     Returns speaker names with episode counts.
     """
+    logger.info("list_speakers called")
     client = get_typesense_client()
 
     results = client.collections["transcript_chunks"].documents.search({
@@ -50,6 +59,7 @@ def list_speakers() -> list[dict]:
                     "chunk_count": value["count"],
                 })
 
+    logger.info(f"list_speakers returned | {len(speakers)} speakers | {truncate(speakers)}")
     return speakers
 
 
@@ -59,6 +69,7 @@ def list_industries() -> list[dict]:
 
     Returns industry names with episode counts.
     """
+    logger.info("list_industries called")
     client = get_typesense_client()
 
     results = client.collections["episodes"].documents.search({
@@ -77,4 +88,5 @@ def list_industries() -> list[dict]:
                     "episode_count": value["count"],
                 })
 
+    logger.info(f"list_industries returned | {len(industries)} industries | {truncate(industries)}")
     return industries

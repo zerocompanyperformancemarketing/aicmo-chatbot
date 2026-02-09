@@ -1,3 +1,4 @@
+import logging
 from langgraph_supervisor import create_supervisor
 from agents.utils.llm import get_llm
 from agents.utils.mcp_client import get_mcp_tools
@@ -7,10 +8,14 @@ from agents.quote_agent import create_quote_agent
 from agents.summary_agent import create_summary_agent
 from agents.recommendation_agent import create_recommendation_agent
 
+logger = logging.getLogger(__name__)
+
 
 async def build_supervisor():
     """Build the LangGraph supervisor with all sub-agents."""
+    logger.info("build_supervisor | fetching MCP tools")
     tools = await get_mcp_tools()
+    logger.info(f"build_supervisor | tools={[t.name for t in tools]}")
 
     search_agent = create_search_agent(tools)
     quote_agent = create_quote_agent(tools)
@@ -23,4 +28,5 @@ async def build_supervisor():
         prompt=SUPERVISOR_SYSTEM_PROMPT,
     )
 
+    logger.info("build_supervisor | supervisor compiled")
     return supervisor.compile()

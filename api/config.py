@@ -41,3 +41,7 @@ class Config:
 
     # Slack
     SLACK_WEBHOOK_URL: str = os.getenv("SLACK_WEBHOOK_URL", "")
+
+    # Logging
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
+    LOG_TRUNCATE: int = int(os.getenv("LOG_TRUNCATE", "500"))

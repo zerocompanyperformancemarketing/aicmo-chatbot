@@ -55,6 +55,7 @@ async def extract_metadata(
     segments: list[ParsedCue],
 ) -> EpisodeMetadata:
     """Extract episode metadata from filename and transcript content using LLM."""
+    logger.info(f"extract_metadata called | filename={filename!r}, segments={len(segments)}")
     file_meta = extract_from_filename(filename)
 
     # Build intro and outro text
@@ -86,7 +87,7 @@ async def extract_metadata(
         logger.warning(f"Failed to parse metadata extraction response for {filename}")
         data = {}
 
-    return EpisodeMetadata(
+    result = EpisodeMetadata(
         title=data.get("title", file_meta["title"]),
         guest_names=data.get("guest_names", [file_meta["guest_name"]] if file_meta["guest_name"] else []),
         host_names=data.get("host_names", ["Steven Sikash", "Mike Liske"]),
@@ -96,3 +97,5 @@ async def extract_metadata(
         source_file=filename,
         duration_seconds=int(segments[-1].end_time) if segments else 0,
     )
+    logger.info(f"extract_metadata returned | title={result.title!r}")
+    return result

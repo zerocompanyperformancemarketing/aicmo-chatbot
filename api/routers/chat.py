@@ -1,9 +1,13 @@
+import logging
 import uuid
 from fastapi import APIRouter
 from langchain_core.messages import HumanMessage, AIMessage
+from logging_utils import truncate
 from models.schemas import ChatRequest, ChatResponse, Source
 from agents.supervisor import build_supervisor
 from db.crud import get_or_create_conversation, get_messages, save_message
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -13,13 +17,16 @@ _supervisor = None
 async def _get_supervisor():
     global _supervisor
     if _supervisor is None:
+        logger.info("Initializing supervisor (first request)")
         _supervisor = await build_supervisor()
+        logger.info("Supervisor initialized")
     return _supervisor
 
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     """Main chatbot endpoint. Routes message to LangGraph supervisor."""
+    logger.info(f"POST /chat | message={truncate(request.message)}, conversation_id={request.conversation_id}")
     supervisor = await _get_supervisor()
 
     conversation_id = request.conversation_id or str(uuid.uuid4())
@@ -51,6 +58,7 @@ async def chat(request: ChatRequest):
     await save_message(conversation_id, "user", request.message)
     await save_message(conversation_id, "assistant", response_text)
 
+    logger.info(f"POST /chat response | conversation_id={conversation_id} | {truncate(response_text)}")
     return ChatResponse(
         response=response_text,
         sources=[],

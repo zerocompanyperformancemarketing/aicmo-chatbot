@@ -1,6 +1,9 @@
+import logging
 from langgraph.prebuilt import create_react_agent
 from agents.utils.llm import get_llm
 from agents.utils.prompts import SEARCH_AGENT_PROMPT
+
+logger = logging.getLogger(__name__)
 
 
 def create_search_agent(tools: list):
@@ -9,6 +12,7 @@ def create_search_agent(tools: list):
         t for t in tools
         if t.name in ("search_transcripts_tool", "filter_by_industry_tool", "filter_by_speaker_tool")
     ]
+    logger.info(f"create_search_agent | tools={[t.name for t in search_tools]}")
 
     return create_react_agent(
         model=get_llm(),

@@ -1,4 +1,8 @@
+import logging
+from logging_utils import truncate
 from utils.typesense_client import get_typesense_client
+
+logger = logging.getLogger(__name__)
 
 
 def search_transcripts(
@@ -12,6 +16,7 @@ def search_transcripts(
 
     Returns chunk text, speaker, episode title, timestamps, and relevance score.
     """
+    logger.info(f"search_transcripts called | query={query!r}, limit={limit}, industry={industry!r}, speaker={speaker!r}")
     client = get_typesense_client()
 
     search_params = {
@@ -31,7 +36,7 @@ def search_transcripts(
 
     results = client.collections["transcript_chunks"].documents.search(search_params)
 
-    return [
+    result = [
         {
             "text": hit["document"]["text"],
             "speaker": hit["document"].get("speaker", ""),
@@ -45,3 +50,5 @@ def search_transcripts(
         }
         for hit in results.get("hits", [])
     ]
+    logger.info(f"search_transcripts returned | {len(result)} results | {truncate(result)}")
+    return result

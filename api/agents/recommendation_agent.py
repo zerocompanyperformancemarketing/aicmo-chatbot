@@ -1,6 +1,9 @@
+import logging
 from langgraph.prebuilt import create_react_agent
 from agents.utils.llm import get_llm
 from agents.utils.prompts import RECOMMENDATION_AGENT_PROMPT
+
+logger = logging.getLogger(__name__)
 
 
 def create_recommendation_agent(tools: list):
@@ -14,6 +17,7 @@ def create_recommendation_agent(tools: list):
             "get_episode_metadata_tool",
         )
     ]
+    logger.info(f"create_recommendation_agent | tools={[t.name for t in rec_tools]}")
 
     return create_react_agent(
         model=get_llm(),
