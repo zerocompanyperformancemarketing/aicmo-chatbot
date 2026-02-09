@@ -140,7 +140,7 @@ aicmo-chatbot/
 ├── db/
 │   └── typesense-data/         # Typesense data volume (gitignored)
 │
-└── sample_transcript/
+└── transcripts/
     └── *.vtt                   # Sample transcripts for testing
 ```
 
@@ -161,7 +161,7 @@ Add services to `docker-compose.yml`:
 - All services on a shared Docker network
 - `api` depends on `ts_db` and `mcp`
 - `mcp` depends on `ts_db`
-- Volume mount `sample_transcript/` into `api` for ingestion
+- Volume mount `transcripts/` into `api` for ingestion
 
 ### 1.2 Python Project Setup
 

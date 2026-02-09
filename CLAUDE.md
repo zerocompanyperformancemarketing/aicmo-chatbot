@@ -35,7 +35,7 @@ tests/            86-test pytest suite (all external services mocked)
   api/            API unit tests (vtt, chunker, metadata, speaker, pipeline, schemas, crud, routers)
   mcp/            MCP tool + utility tests (search, filter, metadata, scrape, slack)
 db/               Runtime volumes (mysql-data/, typesense-data/)
-sample_transcript/ Sample VTT file for testing ingestion
+transcripts/ Sample VTT file for testing ingestion
 ```
 
 ## Essential Commands

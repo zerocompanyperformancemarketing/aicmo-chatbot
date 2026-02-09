@@ -64,7 +64,7 @@ mcp/
   utils/                Typesense client, scraping, Slack helpers
 frontend/               Next.js 15 chat UI (public + internal modes)
 tests/                  86-test pytest suite (all external services mocked)
-sample_transcript/      Sample VTT file for testing ingestion
+transcripts/      Sample VTT file for testing ingestion
 docker-compose.yml      All 5 services (Typesense, MySQL, MCP, API, Frontend)
 ```
 
@@ -120,7 +120,7 @@ docker-compose.yml      All 5 services (Typesense, MySQL, MCP, API, Frontend)
    ```bash
    curl -X POST http://localhost:8000/ingest \
      -H "Content-Type: application/json" \
-     -d '{"file_path": "/app/sample_transcript/Balancing Profit and Social Responsibility with Julie Harrell _unedited_.vtt"}'
+     -d '{"file_path": "/app/transcripts/Balancing Profit and Social Responsibility with Julie Harrell _unedited_.vtt"}'
    ```
 
 ## Environment Variables

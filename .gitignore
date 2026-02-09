@@ -5,3 +5,4 @@ __pycache__/
 *.pyc
 db/typesense-data/
 db/mysql-data/
+transcripts/

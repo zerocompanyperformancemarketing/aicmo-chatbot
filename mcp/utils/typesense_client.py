@@ -47,10 +47,12 @@ def ensure_collections(client: typesense.Client) -> None:
             {
                 "name": "embedding",
                 "type": "float[]",
+                "num_dim": 3072,
                 "embed": {
                     "from": ["text"],
                     "model_config": {
-                        "model_name": "ts/all-MiniLM-L12-v2",
+                        "model_name": "openai/text-embedding-3-large",
+                        "api_key": Config.OPENAI_API_KEY,
                     },
                 },
             },

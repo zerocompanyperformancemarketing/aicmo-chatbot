@@ -46,7 +46,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./sample_transcript:/app/sample_transcript
+      - ./transcripts:/app/transcripts
     depends_on:
       ts_db:
         condition: service_started
