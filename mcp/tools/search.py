@@ -22,6 +22,7 @@ def search_transcripts(
     search_params = {
         "q": query,
         "query_by": "text,embedding",
+        "prefix": False,
         "per_page": limit,
         "include_fields": "text,speaker,episode_id,start_time,end_time,chunk_index,guest_names,industry,topic_tags",
     }

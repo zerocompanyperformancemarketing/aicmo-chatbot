@@ -23,15 +23,31 @@ def _get_typesense_client() -> typesense.Client:
     })
 
 
-async def ingest_file(file_path: str) -> dict:
+async def ingest_file(file_path: str, force: bool = False) -> dict:
     """
     Run the full ingestion pipeline for a single VTT file.
 
     Flow: parse VTT → detect speakers → extract metadata → chunk → upsert to Typesense
+
+    If the episode already exists in Typesense, it is skipped unless force=True.
     """
     logger.info(f"ingest_file called | file_path={file_path!r}")
     filename = os.path.basename(file_path)
+    episode_id = filename.replace(".vtt", "").replace(" ", "_").lower()
     logger.info(f"Starting ingestion for: {filename}")
+
+    if not force:
+        client = _get_typesense_client()
+        try:
+            client.collections["episodes"].documents[episode_id].retrieve()
+            logger.info(f"Skipping already-ingested episode: {episode_id}")
+            return {
+                "status": "skipped",
+                "episode_id": episode_id,
+                "chunks_created": 0,
+            }
+        except typesense.exceptions.ObjectNotFound:
+            pass
 
     # Step 1: Parse VTT
     segments = parse_vtt(file_path)
@@ -84,7 +100,7 @@ async def ingest_file(file_path: str) -> dict:
     return result
 
 
-async def ingest_directory(directory_path: str) -> dict:
+async def ingest_directory(directory_path: str, force: bool = False) -> dict:
     """Ingest all VTT files in a directory."""
     logger.info(f"ingest_directory called | directory_path={directory_path!r}")
     vtt_files = [
@@ -95,7 +111,7 @@ async def ingest_directory(directory_path: str) -> dict:
 
     results = []
     for file_path in vtt_files:
-        result = await ingest_file(file_path)
+        result = await ingest_file(file_path, force=force)
         results.append(result)
 
     result = {

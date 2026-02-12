@@ -12,7 +12,7 @@ router = APIRouter()
 async def ingest(request: IngestFileRequest):
     """Trigger ingestion pipeline for a single VTT file."""
     logger.info(f"POST /ingest | file_path={request.file_path!r}")
-    result = await ingest_file(request.file_path)
+    result = await ingest_file(request.file_path, force=request.force)
     logger.info(f"POST /ingest response | status={result['status']}, episode_id={result.get('episode_id')}")
     return IngestResponse(**result)
 
@@ -21,6 +21,6 @@ async def ingest(request: IngestFileRequest):
 async def ingest_dir(request: IngestDirectoryRequest):
     """Batch ingest all VTT files in a directory."""
     logger.info(f"POST /ingest/directory | directory_path={request.directory_path!r}")
-    result = await ingest_directory(request.directory_path)
+    result = await ingest_directory(request.directory_path, force=request.force)
     logger.info(f"POST /ingest/directory response | episodes_processed={result.get('episodes_processed')}")
     return IngestDirectoryResponse(**result)

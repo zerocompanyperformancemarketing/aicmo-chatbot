@@ -11,10 +11,12 @@ class ChatRequest(BaseModel):
 
 class IngestFileRequest(BaseModel):
     file_path: str
+    force: bool = False
 
 
 class IngestDirectoryRequest(BaseModel):
     directory_path: str
+    force: bool = False
 
 
 # --- Response Models ---

@@ -18,7 +18,7 @@ class TestIngestEndpoint:
             request = IngestFileRequest(file_path="/data/episode.vtt")
             response = await ingest_module.ingest(request)
 
-            mock_ingest.assert_called_once_with("/data/episode.vtt")
+            mock_ingest.assert_called_once_with("/data/episode.vtt", force=False)
             assert response.status == "ok"
             assert response.episode_id == "ep-1"
             assert response.chunks_created == 25
@@ -34,6 +34,6 @@ class TestIngestEndpoint:
             request = IngestDirectoryRequest(directory_path="/data/episodes/")
             response = await ingest_module.ingest_dir(request)
 
-            mock_ingest_dir.assert_called_once_with("/data/episodes/")
+            mock_ingest_dir.assert_called_once_with("/data/episodes/", force=False)
             assert response.status == "ok"
             assert response.episodes_processed == 5
