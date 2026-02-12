@@ -1,5 +1,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
+import typesense.exceptions
 
 from models.schemas import ParsedCue, EpisodeMetadata, TranscriptChunk
 
@@ -71,6 +72,9 @@ class TestIngestFile:
 
         # Use separate mocks per collection so upsert calls don't merge
         episodes_col = MagicMock()
+        episodes_col.documents.__getitem__.return_value.retrieve.side_effect = (
+            typesense.exceptions.ObjectNotFound("Not found")
+        )
         chunks_col = MagicMock()
         mock_client = MagicMock()
         mock_client.collections.__getitem__ = lambda self, key: {"episodes": episodes_col, "transcript_chunks": chunks_col}[key]
@@ -108,7 +112,11 @@ class TestIngestFile:
         mock_extract.return_value = sample_metadata
         mock_detect.return_value = labeled_segments
         mock_chunk.return_value = sample_chunks
-        mock_ts.return_value = MagicMock()
+        mock_client = MagicMock()
+        mock_client.collections["episodes"].documents.__getitem__.return_value.retrieve.side_effect = (
+            typesense.exceptions.ObjectNotFound("Not found")
+        )
+        mock_ts.return_value = mock_client
 
         result = await ingest_file("/data/My Great Episode.vtt")
         assert result["episode_id"] == "my_great_episode"
@@ -134,7 +142,11 @@ class TestIngestFile:
         mock_extract.return_value = no_guest_meta
         mock_detect.return_value = labeled_segments
         mock_chunk.return_value = sample_chunks
-        mock_ts.return_value = MagicMock()
+        mock_client = MagicMock()
+        mock_client.collections["episodes"].documents.__getitem__.return_value.retrieve.side_effect = (
+            typesense.exceptions.ObjectNotFound("Not found")
+        )
+        mock_ts.return_value = mock_client
 
         await ingest_file("/data/Episode with John Smith.vtt")
         mock_detect.assert_called_once_with(sample_segments, "John Smith")
@@ -153,7 +165,11 @@ class TestIngestFile:
             industry="", topic_tags=[], summary="",
         )
         mock_detect.return_value = []
-        mock_ts.return_value = MagicMock()
+        mock_client = MagicMock()
+        mock_client.collections["episodes"].documents.__getitem__.return_value.retrieve.side_effect = (
+            typesense.exceptions.ObjectNotFound("Not found")
+        )
+        mock_ts.return_value = mock_client
 
         result = await ingest_file("/data/empty.vtt")
         assert result["chunks_created"] == 0
