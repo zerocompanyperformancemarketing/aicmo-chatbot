@@ -18,4 +18,6 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "typesense>=1.3.0",
     "fastapi>=0.128.5",
+    "bcrypt",
+    "pyjwt",
 ]

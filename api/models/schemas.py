@@ -9,6 +9,18 @@ class ChatRequest(BaseModel):
     conversation_id: str | None = None
 
 
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    username: str
+    full_name: str
+
+
 class IngestFileRequest(BaseModel):
     file_path: str
     force: bool = False

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import ChatMessage from '@/components/ChatMessage';
 import ChatInput from '@/components/ChatInput';
+import { getToken, getFullName, isAuthenticated, logout } from '@/lib/auth';
 
 interface Source {
   episode_title: string;
@@ -18,19 +20,26 @@ interface Message {
 }
 
 export default function ChatPage() {
+  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Load conversation ID from sessionStorage on mount
+  // Auth guard + load conversation ID from sessionStorage on mount
   useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push('/login');
+      return;
+    }
+    setDisplayName(getFullName());
     const savedConversationId = sessionStorage.getItem('conversationId');
     if (savedConversationId) {
       setConversationId(savedConversationId);
     }
-  }, []);
+  }, [router]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -47,16 +56,24 @@ export default function ChatPage() {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const token = getToken();
       const response = await fetch(`${apiUrl}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           message,
           conversation_id: conversationId,
         }),
       });
+
+      if (response.status === 401) {
+        logout();
+        router.push('/login');
+        return;
+      }
 
       if (!response.ok) {
         throw new Error(`API error: ${response.status} ${response.statusText}`);
@@ -92,17 +109,33 @@ export default function ChatPage() {
     sessionStorage.removeItem('conversationId');
   };
 
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">AICMO Podcast Chat</h1>
-        <button
-          onClick={handleNewChat}
-          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
-        >
-          New Chat
-        </button>
+        <div className="flex items-center gap-4">
+          {displayName && (
+            <span className="text-sm text-gray-600">{displayName}</span>
+          )}
+          <button
+            onClick={handleNewChat}
+            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+          >
+            New Chat
+          </button>
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 bg-red-50 text-red-700 rounded-lg font-medium hover:bg-red-100 transition-colors"
+          >
+            Logout
+          </button>
+        </div>
       </header>
 
       {/* Messages Container */}

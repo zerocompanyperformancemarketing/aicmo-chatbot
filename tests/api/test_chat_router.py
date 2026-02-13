@@ -29,7 +29,7 @@ class TestChatEndpoint:
             patch.object(chat_module, "save_message", new_callable=AsyncMock) as mock_save,
         ):
             request = ChatRequest(message="Hello")
-            response = await chat_module.chat(request)
+            response = await chat_module.chat(request, username="testuser")
 
             assert response.response == "Test response"
             assert response.conversation_id is not None
@@ -48,7 +48,7 @@ class TestChatEndpoint:
             patch.object(chat_module, "save_message", new_callable=AsyncMock),
         ):
             request = ChatRequest(message="Follow up", conversation_id="conv-123")
-            response = await chat_module.chat(request)
+            response = await chat_module.chat(request, username="testuser")
 
             # Supervisor should receive 2 messages (1 prior + 1 new)
             invoke_args = mock_supervisor.ainvoke.call_args[0][0]
@@ -67,6 +67,6 @@ class TestChatEndpoint:
             patch.object(chat_module, "save_message", new_callable=AsyncMock),
         ):
             request = ChatRequest(message="Hello")
-            response = await chat_module.chat(request)
+            response = await chat_module.chat(request, username="testuser")
 
             assert response.response == "I couldn't find an answer."

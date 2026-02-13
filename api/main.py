@@ -3,7 +3,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config import Config
-from routers import chat, ingest
+from auth import hash_password
+from routers import auth, chat, ingest
+from db.crud import get_user_by_username, create_user
 from db.models import Base
 from db.session import engine
 
@@ -19,6 +21,16 @@ async def lifespan(app: FastAPI):
     logger.info("API starting up — creating DB tables")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    # Seed admin user
+    existing = await get_user_by_username("admin")
+    if existing is None:
+        await create_user(
+            username="admin",
+            password_hash=hash_password("aicmochatbot2026!"),
+            full_name="Admin",
+            email="admin@aicmo.com",
+        )
+        logger.info("Seeded admin user")
     logger.info("API startup complete")
     yield
     logger.info("API shutting down")
@@ -41,6 +53,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(ingest.router)
 
