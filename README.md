@@ -43,27 +43,32 @@ Multi-agent RAG chatbot that turns a podcast transcript library into a searchabl
 | Tools    | FastMCP (HTTP transport), 9 Typesense-backed tools       |
 | Search   | Typesense 30.1 (auto-embedding, hybrid keyword + vector) |
 | Database | MySQL 8.0, SQLAlchemy 2.0 async, aiomysql                |
+| Auth     | JWT (PyJWT) + bcrypt, HTTPBearer                         |
 | LLM      | OpenRouter API (OpenAI-compatible)                       |
-| Frontend | Next.js 15                                               |
+| Frontend | Next.js 15 (login + chat pages)                          |
 | Infra    | Docker Compose, uv package manager                       |
 
 ## Project Structure
 
 ```
 api/
-  main.py               FastAPI entry point
+  main.py               FastAPI entry point (seeds admin user on startup)
+  auth.py               JWT + bcrypt auth utilities, get_current_user dependency
   config.py             Settings from env vars
   agents/               LangGraph supervisor + 4 specialist agents
   ingestion/            VTT parsing, speaker detection, chunking, pipeline
-  routers/              /chat and /ingest endpoints
-  db/                   SQLAlchemy models & async CRUD
+  routers/              /auth/login, /chat (protected), and /ingest endpoints
+  db/                   SQLAlchemy models & async CRUD (Conversation, Message, User)
   models/               Pydantic request/response schemas
 mcp/
   server.py             FastMCP server entry point
   tools/                search, filter, metadata, scrape, slack tools
   utils/                Typesense client, scraping, Slack helpers
-frontend/               Next.js 15 chat UI (public + internal modes)
-tests/                  86-test pytest suite (all external services mocked)
+frontend/
+  app/login/            Login page (username/password form)
+  app/chat/             Chat page (auth-guarded, with logout)
+  lib/auth.ts           Client-side token helpers (localStorage)
+tests/                  98-test pytest suite (all external services mocked)
 transcripts/      Sample VTT file for testing ingestion
 docker-compose.yml      All 5 services (Typesense, MySQL, MCP, API, Frontend)
 ```
@@ -113,7 +118,7 @@ docker-compose.yml      All 5 services (Typesense, MySQL, MCP, API, Frontend)
    # {"status": "ok"}
    ```
 
-   **Access the chat interface:** Open your browser to [http://localhost:3000/chat](http://localhost:3000/chat)
+   **Access the chat interface:** Open your browser to [http://localhost:3000/login](http://localhost:3000/login) and log in with `admin` / `aicmochatbot2026!` (seeded on first startup).
 
 5. **Ingest a sample transcript**
 
@@ -143,6 +148,9 @@ docker-compose.yml      All 5 services (Typesense, MySQL, MCP, API, Frontend)
 | `SCRAPINGBEE_API_KEY` | ScrapingBee API key for web search/scrape tools  | No       |
 | `SLACK_WEBHOOK_URL`   | Slack incoming webhook URL for notifications     | No       |
 | `NEXT_PUBLIC_API_URL` | Frontend API URL (browser-accessible)            | Yes      |
+| `JWT_SECRET`          | Secret key for signing JWT tokens                | Yes      |
+| `JWT_ALGORITHM`       | JWT signing algorithm (default `HS256`)          | No       |
+| `JWT_EXPIRY_HOURS`    | Token expiry in hours (default `24`)             | No       |
 
 ## Running Tests
 
@@ -151,7 +159,7 @@ Tests run outside Docker using `uv` and require no running services (all externa
 ```bash
 cd tests
 uv sync            # Install test dependencies (first time)
-uv run pytest -v   # Run all 86 tests
+uv run pytest -v   # Run all 98 tests
 ```
 
 Run subsets:
@@ -161,15 +169,24 @@ uv run pytest api/ -v   # API tests only
 uv run pytest mcp/ -v   # MCP tests only
 ```
 
-Expected output: `86 passed`.
+Expected output: `98 passed`.
 
 ## API Usage
 
-### Chat
+### Login
+
+```bash
+curl -X POST http://localhost:8000/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"admin","password":"aicmochatbot2026!"}'
+```
+
+### Chat (requires token)
 
 ```bash
 curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
   -d '{"message": "What did Julie Harrell say about profitability?"}'
 ```
 
@@ -233,3 +250,24 @@ docker-compose logs -f mysql   # MySQL logs
 ```bash
 docker-compose down
 ```
+
+## Contributing
+
+The `main` branch is protected with the following rules:
+
+- **No direct pushes** — all changes must go through a pull request
+- **1 approval required** — PRs need at least one approving review before merging
+- **Stale reviews dismissed** — pushing new commits to a PR invalidates previous approvals
+- **No force pushes** — branch history cannot be rewritten
+- **No branch deletion** — `main` cannot be deleted
+
+### Workflow
+
+1. Create a feature or fix branch:
+   ```bash
+   git checkout -b feature/<short-description>   # New feature
+   git checkout -b fix/<short-description>        # Bug fix
+   ```
+2. Make your changes and push the branch
+3. Open a pull request against `main`
+4. Wait for approval, then merge
