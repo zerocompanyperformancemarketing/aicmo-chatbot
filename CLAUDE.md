@@ -15,24 +15,29 @@ Uses multi-agent RAG: users ask questions, a LangGraph supervisor routes to spec
 | Tools        | FastMCP (HTTP transport), 9 Typesense-backed tools     |
 | Search       | Typesense 30.1 (auto-embedding, hybrid keyword+vector) |
 | Database     | MySQL 8.0, SQLAlchemy 2.0 async, aiomysql             |
+| Auth         | JWT (PyJWT) + bcrypt, HTTPBearer                       |
 | LLM          | OpenRouter API (openai/gpt-5.2 via ChatOpenAI)        |
-| Frontend     | Next.js 15 (public + internal modes)                   |
+| Frontend     | Next.js 15 (login + chat pages)                        |
 | Infra        | Docker Compose, uv package manager                     |
 
 ## Key Directories
 
 ```
 api/              FastAPI backend — agents, ingestion pipeline, DB models, routers
+  auth.py         JWT + bcrypt auth utilities, get_current_user dependency
   agents/         LangGraph multi-agent system (supervisor + 4 specialist agents)
   ingestion/      VTT parsing → speaker detection → metadata → chunking → Typesense
-  routers/        /chat and /ingest endpoints
-  db/             SQLAlchemy models & async CRUD (Conversation, Message)
+  routers/        /auth/login, /chat (protected), and /ingest endpoints
+  db/             SQLAlchemy models & async CRUD (Conversation, Message, User)
 mcp/              FastMCP server — 9 tools (search, filter, metadata, scrape, slack)
   tools/          Tool implementations (search.py, filter.py, metadata.py)
   utils/          Typesense client, scraping, Slack webhook
 frontend/         Next.js 15 chat UI (must be built via Docker — no Node.js on dev machine)
-tests/            86-test pytest suite (all external services mocked)
-  api/            API unit tests (vtt, chunker, metadata, speaker, pipeline, schemas, crud, routers)
+  app/login/      Login page (username/password form)
+  app/chat/       Chat page (auth-guarded, with logout)
+  lib/auth.ts     Client-side token helpers (localStorage)
+tests/            98-test pytest suite (all external services mocked)
+  api/            API unit tests (vtt, chunker, metadata, speaker, pipeline, schemas, crud, routers, auth)
   mcp/            MCP tool + utility tests (search, filter, metadata, scrape, slack)
 db/               Runtime volumes (mysql-data/, typesense-data/)
 transcripts/ Sample VTT file for testing ingestion
@@ -52,12 +57,12 @@ docker-compose logs -f api     # Tail API logs (also: mcp, ts_db, mysql, fronten
 
 ```bash
 cd tests && uv sync            # Install test deps (first time)
-uv run pytest -v               # Run all 86 tests (~2s, all mocked)
+uv run pytest -v               # Run all 98 tests (~5s, all mocked)
 uv run pytest api/ -v          # API tests only
 uv run pytest mcp/ -v          # MCP tests only
 ```
 
-Expected: `86 passed, 3 warnings` (warnings are harmless AsyncMock artifacts).
+Expected: `98 passed, 9 warnings` (warnings are harmless AsyncMock/JWT artifacts).
 
 ### Ingestion
 
@@ -76,24 +81,32 @@ curl -X POST http://localhost:8000/ingest/directory \
 ### Chat
 
 **Web Interface (recommended):**
-- Open browser to http://localhost:3000/chat
-- Type your question and click Send
+- Open browser to http://localhost:3000/login
+- Login with `admin` / `aicmochatbot2026!` (seeded on first startup)
+- Redirects to `/chat` — type your question and click Send
 
 **API (curl):**
 ```bash
+# 1. Get a token
+TOKEN=$(curl -s -X POST http://localhost:8000/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"admin","password":"aicmochatbot2026!"}' | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+
+# 2. Chat (token required)
 curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
   -d '{"message": "What did Julie Harrell say about profitability?"}'
 ```
 
 ## Environment
 
 Two env files: `.env` (local dev, localhost hosts) and `.env.docker` (container hostnames).
-Key variables: `OPENROUTER_API_KEY`, `TS_API_KEY`, `DB_*`, `MCP_URL`, `NEXT_PUBLIC_API_URL`, `SCRAPINGBEE_API_KEY`.
+Key variables: `OPENROUTER_API_KEY`, `TS_API_KEY`, `DB_*`, `MCP_URL`, `NEXT_PUBLIC_API_URL`, `SCRAPINGBEE_API_KEY`, `JWT_SECRET`, `JWT_ALGORITHM`, `JWT_EXPIRY_HOURS`.
 
 ## Entry Points
 
-- API server: `api/main.py` — FastAPI app with lifespan, creates DB tables on startup
+- API server: `api/main.py` — FastAPI app with lifespan, creates DB tables and seeds admin user on startup
 - MCP server: `mcp/server.py` — FastMCP HTTP app, 9 tools registered
 - Supervisor: `api/agents/supervisor.py` — LangGraph orchestrator for 4 agents
 - Pipeline: `api/ingestion/pipeline.py` — VTT → speaker detect → metadata → chunk → Typesense
