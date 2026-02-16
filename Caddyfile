@@ -1,0 +1,36 @@
+# Caddy configuration for bliss-bot.com
+bliss-bot.com {
+    # API routes
+    handle /api/* {
+        reverse_proxy api:8000
+    }
+
+    # Auth routes (login endpoint)
+    handle /auth/* {
+        reverse_proxy api:8000
+    }
+
+    # Chat API endpoint (POST only - GET goes to frontend for the page)
+    @chatapi {
+        path /chat
+        method POST
+    }
+    handle @chatapi {
+        reverse_proxy api:8000
+    }
+
+    # Ingest endpoints
+    handle /ingest* {
+        reverse_proxy api:8000
+    }
+
+    # Everything else goes to frontend
+    handle {
+        reverse_proxy frontend:3000
+    }
+}
+
+# Redirect www to non-www
+www.bliss-bot.com {
+    redir https://bliss-bot.com{uri} permanent
+}

@@ -55,7 +55,7 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, userMessage]);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
       const token = getToken();
       const response = await fetch(`${apiUrl}/chat`, {
         method: 'POST',
