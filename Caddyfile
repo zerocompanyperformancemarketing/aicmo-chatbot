@@ -34,3 +34,8 @@ bliss-bot.com {
 www.bliss-bot.com {
     redir https://bliss-bot.com{uri} permanent
 }
+
+# Phoenix tracing UI
+phoenix.bliss-bot.com {
+    reverse_proxy phoenix:6006
+}
