@@ -12,14 +12,24 @@ def filter_by_industry(industry: str, limit: int = 10) -> list[dict]:
     Returns matching episodes with metadata.
     """
     logger.info(f"filter_by_industry called | industry={industry!r}, limit={limit}")
+
+    # Require a non-empty industry to avoid returning too many results
+    if not industry or not industry.strip():
+        raise ValueError("industry is required and cannot be empty")
+
     client = get_typesense_client()
 
-    results = client.collections["episodes"].documents.search({
+    # Wrap in backticks for special chars (parentheses, slashes, etc.)
+    escaped = industry.replace("`", "\\`")
+
+    search_params = {
         "q": "*",
-        "filter_by": f"industry:={industry}",
         "per_page": limit,
+        "filter_by": f"industry:=`{escaped}`",
         "include_fields": "id,title,guest_names,host_names,industry,topic_tags,summary,episode_link",
-    })
+    }
+
+    results = client.collections["episodes"].documents.search(search_params)
 
     result = [
         {
@@ -44,14 +54,24 @@ def filter_by_speaker(speaker_name: str, limit: int = 10) -> list[dict]:
     Returns chunks spoken by that person with episode context.
     """
     logger.info(f"filter_by_speaker called | speaker_name={speaker_name!r}, limit={limit}")
+
+    # Require a non-empty speaker_name to avoid returning too many results
+    if not speaker_name or not speaker_name.strip():
+        raise ValueError("speaker_name is required and cannot be empty")
+
     client = get_typesense_client()
 
-    results = client.collections["transcript_chunks"].documents.search({
+    # Wrap in backticks for special chars
+    escaped = speaker_name.replace("`", "\\`")
+
+    search_params = {
         "q": "*",
-        "filter_by": f"speaker:={speaker_name}",
         "per_page": limit,
+        "filter_by": f"speaker:=`{escaped}`",
         "include_fields": "text,speaker,episode_id,start_time,end_time,chunk_index",
-    })
+    }
+
+    results = client.collections["transcript_chunks"].documents.search(search_params)
 
     result = [
         {
