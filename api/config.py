@@ -50,3 +50,6 @@ class Config:
     # Logging
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
     LOG_TRUNCATE: int = int(os.getenv("LOG_TRUNCATE", "500"))
+
+    ARIZE_SPACE_ID: str = os.getenv("ARIZE_SPACE_ID", "")
+    ARIZE_API_KEY: str = os.getenv("ARIZE_API_KEY", "")
