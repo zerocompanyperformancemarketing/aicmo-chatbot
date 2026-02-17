@@ -17,10 +17,15 @@ def search_transcripts(
     Returns chunk text, speaker, episode title, timestamps, and relevance score.
     """
     logger.info(f"search_transcripts called | query={query!r}, limit={limit}, industry={industry!r}, speaker={speaker!r}")
+
+    # Require a non-empty query to avoid returning too many results
+    if not query or not query.strip():
+        raise ValueError("query is required and cannot be empty")
+
     client = get_typesense_client()
 
     search_params = {
-        "q": query,
+        "q": query.strip(),
         "query_by": "text,embedding",
         "prefix": False,
         "per_page": limit,
@@ -28,10 +33,12 @@ def search_transcripts(
     }
 
     filter_parts = []
-    if industry:
-        filter_parts.append(f"industry:={industry}")
-    if speaker:
-        filter_parts.append(f"speaker:={speaker}")
+    if industry and industry.strip():
+        escaped = industry.replace("`", "\\`")
+        filter_parts.append(f"industry:=`{escaped}`")
+    if speaker and speaker.strip():
+        escaped = speaker.replace("`", "\\`")
+        filter_parts.append(f"speaker:=`{escaped}`")
     if filter_parts:
         search_params["filter_by"] = " && ".join(filter_parts)
 
