@@ -28,6 +28,22 @@ services:
       timeout: 5s
       retries: 5
 
+  phoenix:
+    container_name: phoenix
+    image: arizephoenix/phoenix:latest
+    ports:
+      - "6006:6006"   # UI and HTTP
+      - "4317:4317"   # gRPC OTLP collector
+    environment:
+      - PHOENIX_WORKING_DIR=/data
+    volumes:
+      - phoenix_data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:6006/healthz')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   mcp:
     container_name: mcp
     build: ./mcp
@@ -50,6 +66,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
+      phoenix:
+        condition: service_healthy
       mcp:
         condition: service_started
       mysql:
@@ -86,3 +104,4 @@ services:
 volumes:
   caddy_data:
   caddy_config:
+  phoenix_data:

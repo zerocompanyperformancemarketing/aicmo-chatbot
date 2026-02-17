@@ -15,25 +15,17 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-import os
-from arize.otel import register
-from openinference.instrumentation.langchain import LangChainInstrumentor
-from openinference.instrumentation.openai import OpenAIInstrumentor # Optional, for deeper OpenAI traces
+from phoenix.otel import register
 
-
-# Setup OTel via Arize AX's convenience function
+# Setup OTel via Phoenix (self-hosted)
 tracer_provider = register(
-    space_id=Config.ARIZE_SPACE_ID,
-    api_key=Config.ARIZE_API_KEY,
-    project_name="AICMO-Chatbot" # Choose a project name
+    project_name="AICMO-Chatbot",
+    endpoint=Config.PHOENIX_COLLECTOR_ENDPOINT,
+    auto_instrument=True,
+    batch=True,
 )
 
-# Instrument LangChain (which includes LangGraph)
-LangChainInstrumentor().instrument(tracer_provider=tracer_provider)
-# Optionally instrument OpenAI for deeper traces if using OpenAI models
-OpenAIInstrumentor().instrument(tracer_provider=tracer_provider)
-
-logging.info("LangGraph (via LangChain instrumentor) and OpenAI instrumented for Arize AX.")
+logging.info(f"LangGraph and OpenAI instrumented for Phoenix at {Config.PHOENIX_COLLECTOR_ENDPOINT}")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
