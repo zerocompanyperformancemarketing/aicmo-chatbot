@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import SourceCard from './SourceCard';
+import MarkdownContent from './MarkdownContent';
 
 interface Source {
   episode_title: string;
@@ -24,7 +25,7 @@ export default function ChatMessage({ role, content, sources }: ChatMessageProps
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
       <div className={`max-w-[80%] ${isUser ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'} rounded-lg px-4 py-3`}>
-        <div className="whitespace-pre-wrap">{content}</div>
+        <MarkdownContent content={content} variant={role} />
 
         {sources && sources.length > 0 && (
           <div className="mt-3">
