@@ -35,13 +35,12 @@ System prompts live in `api/agents/utils/prompts.py`.
 
 ## LLM Configuration
 
-OpenRouter provides the LLM via OpenAI-compatible API (`api/agents/utils/llm.py`):
+OpenAI provides the LLM directly (`api/agents/utils/llm.py`):
 
 ```python
 ChatOpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key=OPENROUTER_API_KEY,
-    model="openai/gpt-5.2",
+    api_key=OPENAI_API_KEY,
+    model="gpt-5.1",
     temperature=0.0
 )
 ```

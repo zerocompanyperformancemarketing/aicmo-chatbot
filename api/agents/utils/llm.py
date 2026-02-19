@@ -3,10 +3,9 @@ from config import Config
 
 
 def get_llm(temperature: float = 0.0) -> ChatOpenAI:
-    """Return a ChatOpenAI instance configured for OpenRouter."""
+    """Return a ChatOpenAI instance configured for OpenAI."""
     return ChatOpenAI(
-        base_url=Config.OPENROUTER_BASE_URL,
-        api_key=Config.OPENROUTER_API_KEY,
-        model=Config.OPENROUTER_MODEL,
+        api_key=Config.OPENAI_API_KEY,
+        model=Config.OPENAI_MODEL,
         temperature=temperature,
     )
