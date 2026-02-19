@@ -16,7 +16,7 @@ Uses multi-agent RAG: users ask questions, a LangGraph supervisor routes to spec
 | Search       | Typesense 30.1 (auto-embedding, hybrid keyword+vector) |
 | Database     | MySQL 8.0, SQLAlchemy 2.0 async, aiomysql             |
 | Auth         | JWT (PyJWT) + bcrypt, HTTPBearer                       |
-| LLM          | OpenRouter API (openai/gpt-5.2 via ChatOpenAI)        |
+| LLM          | OpenAI API (gpt-5.1 via ChatOpenAI)                   |
 | Frontend     | Next.js 15 (login + chat pages)                        |
 | Infra        | Docker Compose, uv package manager                     |
 
@@ -102,7 +102,7 @@ curl -X POST http://localhost:8000/chat \
 ## Environment
 
 Two env files: `.env` (local dev, localhost hosts) and `.env.docker` (container hostnames).
-Key variables: `OPENROUTER_API_KEY`, `TS_API_KEY`, `DB_*`, `MCP_URL`, `NEXT_PUBLIC_API_URL`, `SCRAPINGBEE_API_KEY`, `JWT_SECRET`, `JWT_ALGORITHM`, `JWT_EXPIRY_HOURS`.
+Key variables: `OPENAI_API_KEY`, `OPENAI_MODEL`, `TS_API_KEY`, `DB_*`, `MCP_URL`, `NEXT_PUBLIC_API_URL`, `SCRAPINGBEE_API_KEY`, `JWT_SECRET`, `JWT_ALGORITHM`, `JWT_EXPIRY_HOURS`.
 
 ## Entry Points
 

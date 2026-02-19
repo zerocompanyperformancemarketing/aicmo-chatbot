@@ -17,18 +17,13 @@ class Config:
     TS_API_KEY: str = os.getenv("TS_API_KEY", "")
     TS_HOST: str = os.getenv("TS_HOST", "localhost")
 
-    # OpenRouter
-    OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
-    OPENROUTER_BASE_URL: str = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
-    OPENROUTER_MODEL: str = os.getenv("OPENROUTER_MODEL", "openai/gpt-5.2")
+    # OpenAI
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-5.1")
 
     # Urlbox
     URLBOX_API_KEY: str = os.getenv("URLBOX_API_KEY", "")
     URLBOX_API_SECRET: str = os.getenv("URLBOX_API_SECRET", "")
-
-    # OpenAI
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
-    OPENAI_ORG_KEY: str = os.getenv("OPENAI_ORG_KEY", "")
 
     # Stability AI
     STABILITYAI_API_KEY: str = os.getenv("STABILITYAI_API_KEY", "")
