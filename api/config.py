@@ -48,3 +48,7 @@ class Config:
 
     # Phoenix (self-hosted tracing)
     PHOENIX_COLLECTOR_ENDPOINT: str = os.getenv("PHOENIX_COLLECTOR_ENDPOINT", "http://localhost:4317")
+
+    # Admin user (seeded on first startup)
+    ADMIN_USERNAME: str = os.getenv("ADMIN_USERNAME", "")
+    ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "")

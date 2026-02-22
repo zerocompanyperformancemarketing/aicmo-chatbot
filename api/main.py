@@ -32,16 +32,19 @@ async def lifespan(app: FastAPI):
     logger.info("API starting up — creating DB tables")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    # Seed admin user
-    existing = await get_user_by_username("admin")
-    if existing is None:
-        await create_user(
-            username="admin",
-            password_hash=hash_password("aicmochatbot2026!"),
-            full_name="Admin",
-            email="admin@aicmo.com",
-        )
-        logger.info("Seeded admin user")
+    # Seed admin user from environment variables
+    if Config.ADMIN_USERNAME and Config.ADMIN_PASSWORD:
+        existing = await get_user_by_username(Config.ADMIN_USERNAME)
+        if existing is None:
+            await create_user(
+                username=Config.ADMIN_USERNAME,
+                password_hash=hash_password(Config.ADMIN_PASSWORD),
+                full_name="Admin",
+                email=f"{Config.ADMIN_USERNAME}@aicmo.com",
+            )
+            logger.info(f"Seeded admin user: {Config.ADMIN_USERNAME}")
+    else:
+        logger.warning("ADMIN_USERNAME or ADMIN_PASSWORD not set — skipping admin seed")
     logger.info("API startup complete")
     yield
     logger.info("API shutting down")
