@@ -3,9 +3,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config import Config
-from auth import hash_password
+from auth import hash_password, verify_password
 from routers import auth, chat, conversations, ingest
-from db.crud import get_user_by_username, create_user
+from db.crud import get_user_by_username, create_user, update_user_password
 from db.models import Base
 from db.session import engine
 
@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI):
     logger.info("API starting up — creating DB tables")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    # Seed admin user from environment variables
+    # Seed or sync admin user from environment variables
     if Config.ADMIN_USERNAME and Config.ADMIN_PASSWORD:
         existing = await get_user_by_username(Config.ADMIN_USERNAME)
         if existing is None:
@@ -43,8 +43,14 @@ async def lifespan(app: FastAPI):
                 email=f"{Config.ADMIN_USERNAME}@aicmo.com",
             )
             logger.info(f"Seeded admin user: {Config.ADMIN_USERNAME}")
+        elif not verify_password(Config.ADMIN_PASSWORD, existing.password_hash):
+            await update_user_password(
+                Config.ADMIN_USERNAME,
+                hash_password(Config.ADMIN_PASSWORD),
+            )
+            logger.info(f"Updated admin password from env for: {Config.ADMIN_USERNAME}")
     else:
-        logger.warning("ADMIN_USERNAME or ADMIN_PASSWORD not set — skipping admin seed")
+        logger.warning("ADMIN_USERNAME or ADMIN_PASSWORD not set — skipping admin sync")
     logger.info("API startup complete")
     yield
     logger.info("API shutting down")
