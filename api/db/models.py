@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, String, Text, DateTime, Integer, ForeignKey, JSON
+from sqlalchemy import Column, String, Text, DateTime, Integer, ForeignKey, JSON, Boolean
 from sqlalchemy.orm import DeclarativeBase, relationship
 
 
@@ -42,7 +42,13 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     full_name = Column(String(100), nullable=False)
     email = Column(String(255), unique=True, nullable=False)
+    first_name = Column(String(50), nullable=False, default="")
+    last_name = Column(String(50), nullable=False, default="")
+    is_verified = Column(Boolean, default=False, nullable=False)
+    is_admin = Column(Boolean, default=False, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    password_changed_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
-    conversations = relationship("Conversation", back_populates="user", order_by="Conversation.updated_at.desc()")
+    conversations = relationship("Conversation", back_populates="user", order_by="Conversation.updated_at.desc()", cascade="all, delete-orphan")

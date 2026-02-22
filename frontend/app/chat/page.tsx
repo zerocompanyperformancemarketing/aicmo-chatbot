@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import ChatMessage from '@/components/ChatMessage';
 import ChatInput from '@/components/ChatInput';
 import ConversationHistory from '@/components/ConversationHistory';
-import { getToken, getFullName, isAuthenticated, logout } from '@/lib/auth';
+import { getToken, getFullName, getIsAdmin, isAuthenticated, logout } from '@/lib/auth';
+import Link from 'next/link';
 import { fetchConversation } from '@/lib/api';
 
 interface Source {
@@ -29,6 +30,7 @@ export default function ChatPage() {
   const [error, setError] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auth guard + load conversation ID from sessionStorage on mount
@@ -38,6 +40,7 @@ export default function ChatPage() {
       return;
     }
     setDisplayName(getFullName());
+    setIsAdmin(getIsAdmin());
     const savedConversationId = sessionStorage.getItem('conversationId');
     if (savedConversationId) {
       setConversationId(savedConversationId);
@@ -146,6 +149,14 @@ export default function ChatPage() {
         <div className="flex items-center gap-4">
           {displayName && (
             <span className="text-sm text-gray-600">{displayName}</span>
+          )}
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="px-4 py-2 bg-purple-50 text-purple-700 rounded-lg font-medium hover:bg-purple-100 transition-colors"
+            >
+              Admin
+            </Link>
           )}
           <button
             onClick={() => setIsHistoryOpen(true)}

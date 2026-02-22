@@ -1,5 +1,6 @@
+import re
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator, model_validator
 
 
 # --- Request Models ---
@@ -19,6 +20,48 @@ class LoginResponse(BaseModel):
     token_type: str = "bearer"
     username: str
     full_name: str
+    is_admin: bool = False
+
+
+class RegisterRequest(BaseModel):
+    first_name: str
+    last_name: str
+    email: str
+    password: str
+    confirm_password: str
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        if not re.match(email_pattern, v):
+            raise ValueError("Invalid email format")
+        return v.lower()
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        return v
+
+    @field_validator("first_name", "last_name")
+    @classmethod
+    def validate_names(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("Name cannot be empty")
+        return v.strip()
+
+    @model_validator(mode="after")
+    def passwords_match(self) -> "RegisterRequest":
+        if self.password != self.confirm_password:
+            raise ValueError("Passwords do not match")
+        return self
+
+
+class RegisterResponse(BaseModel):
+    message: str
+    username: str
 
 
 class IngestFileRequest(BaseModel):
