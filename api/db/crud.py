@@ -139,3 +139,17 @@ async def create_user(
         await session.commit()
         await session.refresh(user)
         return user
+
+
+async def update_user_password(username: str, password_hash: str) -> bool:
+    """Update a user's password hash. Returns True if updated."""
+    async with async_session() as session:
+        result = await session.execute(
+            select(User).where(User.username == username)
+        )
+        user = result.scalar_one_or_none()
+        if user is None:
+            return False
+        user.password_hash = password_hash
+        await session.commit()
+        return True
