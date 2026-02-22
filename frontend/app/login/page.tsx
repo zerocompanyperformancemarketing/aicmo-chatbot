@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function LoginPage() {
       localStorage.setItem('token', data.access_token);
       localStorage.setItem('username', data.username);
       localStorage.setItem('fullName', data.full_name);
+      localStorage.setItem('isAdmin', data.is_admin ? 'true' : 'false');
       router.push('/chat');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
@@ -90,6 +92,13 @@ export default function LoginPage() {
             {isLoading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
+
+        <p className="mt-6 text-center text-sm text-gray-600">
+          Don&apos;t have an account?{' '}
+          <Link href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
+            Register here
+          </Link>
+        </p>
       </div>
     </div>
   );

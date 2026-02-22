@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config import Config
 from auth import hash_password, verify_password
-from routers import auth, chat, conversations, ingest
+from routers import admin, auth, chat, conversations, ingest
 from db.crud import get_user_by_username, create_user, update_user_password
 from db.models import Base
 from db.session import engine
@@ -41,6 +41,10 @@ async def lifespan(app: FastAPI):
                 password_hash=hash_password(Config.ADMIN_PASSWORD),
                 full_name="Admin",
                 email=f"{Config.ADMIN_USERNAME}@aicmo.com",
+                first_name="Admin",
+                last_name="",
+                is_verified=True,
+                is_admin=True,
             )
             logger.info(f"Seeded admin user: {Config.ADMIN_USERNAME}")
         elif not verify_password(Config.ADMIN_PASSWORD, existing.password_hash):
@@ -73,6 +77,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(admin.router)
 app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(conversations.router)

@@ -58,3 +58,61 @@ export async function fetchConversation(id: string): Promise<ConversationDetail>
 export async function deleteConversation(id: string): Promise<void> {
   await apiRequest(`/conversations/${id}`, { method: 'DELETE' });
 }
+
+
+// --- Admin API Functions ---
+
+export interface AdminUser {
+  id: number;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  full_name: string;
+  is_verified: boolean;
+  is_admin: boolean;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface AdminUserListResponse {
+  users: AdminUser[];
+}
+
+export interface AdminMessageResponse {
+  message: string;
+}
+
+export async function fetchAllUsers(): Promise<AdminUser[]> {
+  const data = await apiRequest<AdminUserListResponse>('/admin/users');
+  return data.users;
+}
+
+export async function fetchPendingUsers(): Promise<AdminUser[]> {
+  const data = await apiRequest<AdminUserListResponse>('/admin/users/pending');
+  return data.users;
+}
+
+export async function verifyUser(userId: number): Promise<AdminMessageResponse> {
+  return apiRequest<AdminMessageResponse>(`/admin/users/${userId}/verify`, {
+    method: 'POST',
+  });
+}
+
+export async function revokeUser(userId: number): Promise<AdminMessageResponse> {
+  return apiRequest<AdminMessageResponse>(`/admin/users/${userId}/revoke`, {
+    method: 'POST',
+  });
+}
+
+export async function reactivateUser(userId: number): Promise<AdminMessageResponse> {
+  return apiRequest<AdminMessageResponse>(`/admin/users/${userId}/reactivate`, {
+    method: 'POST',
+  });
+}
+
+export async function deleteUser(userId: number): Promise<AdminMessageResponse> {
+  return apiRequest<AdminMessageResponse>(`/admin/users/${userId}`, {
+    method: 'DELETE',
+  });
+}

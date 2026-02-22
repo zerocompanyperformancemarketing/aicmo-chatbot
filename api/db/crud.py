@@ -1,4 +1,6 @@
-from sqlalchemy import select, delete
+from datetime import datetime
+
+from sqlalchemy import select, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models import Conversation, Message, User
@@ -125,7 +127,14 @@ async def get_user_by_username(username: str) -> User | None:
 
 
 async def create_user(
-    username: str, password_hash: str, full_name: str, email: str
+    username: str,
+    password_hash: str,
+    full_name: str,
+    email: str,
+    first_name: str = "",
+    last_name: str = "",
+    is_verified: bool = False,
+    is_admin: bool = False,
 ) -> User:
     """Create a new user."""
     async with async_session() as session:
@@ -134,6 +143,10 @@ async def create_user(
             password_hash=password_hash,
             full_name=full_name,
             email=email,
+            first_name=first_name,
+            last_name=last_name,
+            is_verified=is_verified,
+            is_admin=is_admin,
         )
         session.add(user)
         await session.commit()
@@ -142,7 +155,7 @@ async def create_user(
 
 
 async def update_user_password(username: str, password_hash: str) -> bool:
-    """Update a user's password hash. Returns True if updated."""
+    """Update a user's password hash and password_changed_at. Returns True if updated."""
     async with async_session() as session:
         result = await session.execute(
             select(User).where(User.username == username)
@@ -151,5 +164,104 @@ async def update_user_password(username: str, password_hash: str) -> bool:
         if user is None:
             return False
         user.password_hash = password_hash
+        user.password_changed_at = datetime.utcnow()
+        await session.commit()
+        return True
+
+
+async def get_user_by_email(email: str) -> User | None:
+    """Fetch a user by email (case-insensitive)."""
+    async with async_session() as session:
+        result = await session.execute(
+            select(User).where(func.lower(User.email) == email.lower())
+        )
+        return result.scalar_one_or_none()
+
+
+async def get_user_by_id(user_id: int) -> User | None:
+    """Fetch a user by ID."""
+    async with async_session() as session:
+        result = await session.execute(
+            select(User).where(User.id == user_id)
+        )
+        return result.scalar_one_or_none()
+
+
+async def get_all_users(limit: int = 100, offset: int = 0) -> list[User]:
+    """Get all users with pagination."""
+    async with async_session() as session:
+        result = await session.execute(
+            select(User)
+            .order_by(User.created_at.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        return list(result.scalars().all())
+
+
+async def get_pending_users() -> list[User]:
+    """Get all users pending verification."""
+    async with async_session() as session:
+        result = await session.execute(
+            select(User)
+            .where(User.is_verified == False)
+            .order_by(User.created_at.desc())
+        )
+        return list(result.scalars().all())
+
+
+async def verify_user(user_id: int, verified: bool = True) -> bool:
+    """Set user verification status. Returns True if updated."""
+    async with async_session() as session:
+        result = await session.execute(
+            select(User).where(User.id == user_id)
+        )
+        user = result.scalar_one_or_none()
+        if user is None:
+            return False
+        user.is_verified = verified
+        await session.commit()
+        return True
+
+
+async def set_user_active(user_id: int, active: bool) -> bool:
+    """Set user active status. Returns True if updated."""
+    async with async_session() as session:
+        result = await session.execute(
+            select(User).where(User.id == user_id)
+        )
+        user = result.scalar_one_or_none()
+        if user is None:
+            return False
+        user.is_active = active
+        await session.commit()
+        return True
+
+
+async def delete_user(user_id: int) -> bool:
+    """Delete a user and all their conversations. Returns True if deleted."""
+    async with async_session() as session:
+        result = await session.execute(
+            select(User).where(User.id == user_id)
+        )
+        user = result.scalar_one_or_none()
+        if user is None:
+            return False
+        await session.delete(user)
+        await session.commit()
+        return True
+
+
+async def update_user_password_by_id(user_id: int, password_hash: str) -> bool:
+    """Update a user's password by ID and update password_changed_at. Returns True if updated."""
+    async with async_session() as session:
+        result = await session.execute(
+            select(User).where(User.id == user_id)
+        )
+        user = result.scalar_one_or_none()
+        if user is None:
+            return False
+        user.password_hash = password_hash
+        user.password_changed_at = datetime.utcnow()
         await session.commit()
         return True

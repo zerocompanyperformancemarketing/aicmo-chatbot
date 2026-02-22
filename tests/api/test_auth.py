@@ -22,8 +22,9 @@ class TestPasswordHashing:
 class TestJWT:
     def test_create_and_decode(self):
         token = create_access_token("admin")
-        username = decode_access_token(token)
-        assert username == "admin"
+        payload = decode_access_token(token)
+        assert payload is not None
+        assert payload.get("sub") == "admin"
 
     def test_invalid_token_returns_none(self):
         assert decode_access_token("not-a-valid-token") is None
@@ -32,3 +33,12 @@ class TestJWT:
         token = create_access_token("admin")
         tampered = token + "x"
         assert decode_access_token(tampered) is None
+
+    def test_token_includes_password_changed_at(self):
+        from datetime import datetime
+        pwd_changed = datetime.utcnow()
+        token = create_access_token("admin", pwd_changed)
+        payload = decode_access_token(token)
+        assert payload is not None
+        assert "pwd_changed" in payload
+        assert payload["pwd_changed"] == pwd_changed.isoformat()
