@@ -24,6 +24,7 @@ class TestChatEndpoint:
     async def test_new_conversation(self, mock_supervisor):
         with (
             patch.object(chat_module, "_get_supervisor", return_value=mock_supervisor),
+            patch.object(chat_module, "get_user_id_by_username", new_callable=AsyncMock, return_value=1),
             patch.object(chat_module, "get_or_create_conversation", new_callable=AsyncMock),
             patch.object(chat_module, "get_messages", new_callable=AsyncMock, return_value=[]),
             patch.object(chat_module, "save_message", new_callable=AsyncMock) as mock_save,
@@ -43,6 +44,7 @@ class TestChatEndpoint:
 
         with (
             patch.object(chat_module, "_get_supervisor", return_value=mock_supervisor),
+            patch.object(chat_module, "get_user_id_by_username", new_callable=AsyncMock, return_value=1),
             patch.object(chat_module, "get_or_create_conversation", new_callable=AsyncMock),
             patch.object(chat_module, "get_messages", new_callable=AsyncMock, return_value=[prior_msg]),
             patch.object(chat_module, "save_message", new_callable=AsyncMock),
@@ -62,6 +64,7 @@ class TestChatEndpoint:
 
         with (
             patch.object(chat_module, "_get_supervisor", return_value=supervisor),
+            patch.object(chat_module, "get_user_id_by_username", new_callable=AsyncMock, return_value=1),
             patch.object(chat_module, "get_or_create_conversation", new_callable=AsyncMock),
             patch.object(chat_module, "get_messages", new_callable=AsyncMock, return_value=[]),
             patch.object(chat_module, "save_message", new_callable=AsyncMock),

@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config import Config
 from auth import hash_password
-from routers import auth, chat, ingest
+from routers import auth, chat, conversations, ingest
 from db.crud import get_user_by_username, create_user
 from db.models import Base
 from db.session import engine
@@ -66,6 +66,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(chat.router)
+app.include_router(conversations.router)
 app.include_router(ingest.router)
 
 

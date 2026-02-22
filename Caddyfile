@@ -1,5 +1,5 @@
-# Caddy configuration for bliss-bot.com
-bliss-bot.com {
+# Caddy configuration for bliss-bot.com and localhost
+:80, bliss-bot.com {
     # API routes
     handle /api/* {
         reverse_proxy api:8000
@@ -21,6 +21,11 @@ bliss-bot.com {
 
     # Ingest endpoints
     handle /ingest* {
+        reverse_proxy api:8000
+    }
+
+    # Conversations API endpoints
+    handle /conversations* {
         reverse_proxy api:8000
     }
 

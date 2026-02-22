@@ -72,6 +72,17 @@ class ConversationResponse(BaseModel):
     messages: list[MessageResponse] = []
 
 
+class ConversationSummary(BaseModel):
+    id: str
+    preview: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class ConversationListResponse(BaseModel):
+    conversations: list[ConversationSummary]
+
+
 # --- Data Models ---
 
 class EpisodeMetadata(BaseModel):

@@ -6,7 +6,7 @@ from logging_utils import truncate
 from models.schemas import ChatRequest, ChatResponse, Source
 from agents.supervisor import build_supervisor
 from auth import get_current_user
-from db.crud import get_or_create_conversation, get_messages, save_message
+from db.crud import get_or_create_conversation, get_messages, save_message, get_user_id_by_username
 
 logger = logging.getLogger(__name__)
 
@@ -30,10 +30,13 @@ async def chat(request: ChatRequest, username: str = Depends(get_current_user)):
     logger.info(f"POST /chat | message={truncate(request.message)}, conversation_id={request.conversation_id}")
     supervisor = await _get_supervisor()
 
+    # Get user_id for conversation ownership
+    user_id = await get_user_id_by_username(username)
+
     conversation_id = request.conversation_id or str(uuid.uuid4())
 
-    # Ensure conversation exists in DB
-    await get_or_create_conversation(conversation_id)
+    # Ensure conversation exists in DB (with user ownership)
+    await get_or_create_conversation(conversation_id, user_id)
 
     # Load prior messages for context
     prior_messages = await get_messages(conversation_id)

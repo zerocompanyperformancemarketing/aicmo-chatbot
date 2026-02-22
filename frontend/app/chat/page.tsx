@@ -4,7 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import ChatMessage from '@/components/ChatMessage';
 import ChatInput from '@/components/ChatInput';
+import ConversationHistory from '@/components/ConversationHistory';
 import { getToken, getFullName, isAuthenticated, logout } from '@/lib/auth';
+import { fetchConversation } from '@/lib/api';
 
 interface Source {
   episode_title: string;
@@ -26,6 +28,7 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auth guard + load conversation ID from sessionStorage on mount
@@ -114,6 +117,27 @@ export default function ChatPage() {
     router.push('/login');
   };
 
+  const handleSelectConversation = async (selectedConversationId: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const conversation = await fetchConversation(selectedConversationId);
+      setConversationId(selectedConversationId);
+      sessionStorage.setItem('conversationId', selectedConversationId);
+      setMessages(
+        conversation.messages.map((msg) => ({
+          role: msg.role as 'user' | 'assistant',
+          content: msg.content,
+          sources: msg.sources as Source[] | undefined,
+        }))
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load conversation');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
@@ -123,6 +147,12 @@ export default function ChatPage() {
           {displayName && (
             <span className="text-sm text-gray-600">{displayName}</span>
           )}
+          <button
+            onClick={() => setIsHistoryOpen(true)}
+            className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-medium hover:bg-blue-100 transition-colors"
+          >
+            History
+          </button>
           <button
             onClick={handleNewChat}
             className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
@@ -179,6 +209,15 @@ export default function ChatPage() {
 
       {/* Input */}
       <ChatInput onSend={sendMessage} disabled={isLoading} />
+
+      {/* Conversation History Panel */}
+      <ConversationHistory
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        onSelectConversation={handleSelectConversation}
+        currentConversationId={conversationId}
+        onDeleteCurrentConversation={handleNewChat}
+      />
     </div>
   );
 }
