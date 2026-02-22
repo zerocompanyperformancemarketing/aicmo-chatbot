@@ -8,6 +8,7 @@ interface ConversationHistoryProps {
   onClose: () => void;
   onSelectConversation: (conversationId: string) => void;
   currentConversationId: string | null;
+  onDeleteCurrentConversation: () => void;
 }
 
 export default function ConversationHistory({
@@ -15,6 +16,7 @@ export default function ConversationHistory({
   onClose,
   onSelectConversation,
   currentConversationId,
+  onDeleteCurrentConversation,
 }: ConversationHistoryProps) {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -46,6 +48,9 @@ export default function ConversationHistory({
     try {
       await deleteConversation(conversationId);
       setConversations((prev) => prev.filter((c) => c.id !== conversationId));
+      if (conversationId === currentConversationId) {
+        onDeleteCurrentConversation();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete conversation');
     }

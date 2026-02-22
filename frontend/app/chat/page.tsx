@@ -216,6 +216,7 @@ export default function ChatPage() {
         onClose={() => setIsHistoryOpen(false)}
         onSelectConversation={handleSelectConversation}
         currentConversationId={conversationId}
+        onDeleteCurrentConversation={handleNewChat}
       />
     </div>
   );
